@@ -5,7 +5,7 @@
 #include "../include/LadderBuilder.hpp"
 
 template <class Container>
-Ladder getLadder(const Container& container_, typename Container::iterator& iterator_) {
+Ladder getLadder(const Container& container_, typename Container::const_iterator& iterator_) {
 	if (iterator_ != container_.end()) {
 		Ladder ladder{iterator_->first, iterator_->second};
 		++iterator_;
@@ -54,8 +54,8 @@ void LadderBuilder::clear() {
 }
 
 void LadderBuilder::generateLadders(int count_) {
-	auto buyIterator  = _buyContainer.begin();
-	auto sellIterator = _sellContainer.begin();
+	auto buyIterator  = _buyContainer.cbegin();
+	auto sellIterator = _sellContainer.cbegin();
 
 	int	 index		= 0;
 	auto buyLadder	= getLadder(_buyContainer, buyIterator);

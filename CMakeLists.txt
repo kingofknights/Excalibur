@@ -43,11 +43,14 @@ if (WIN32)
 endif ()
 
 add_executable(${PROJECT_NAME} main.cpp
+        include/EpollSocket.hpp
+        src/EpollSocket.cpp
         src/StreamManager.cpp
         include/Structure.hpp
         include/LadderBuilder.hpp
         src/LadderBuilder.cpp
-        include/StreamManager.hpp)
+        include/StreamManager.hpp
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Boost::headers)
