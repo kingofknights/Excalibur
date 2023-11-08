@@ -24,15 +24,64 @@ using Ladder = struct Ladder {
 	Price	 _price	   = 0;
 	Quantity _quantity = 0;
 };
+
 using LadderDepth = struct LadderDepth {
 	int	   _token = 0;
 	Ladder _bid[5];
 	Ladder _ask[5];
 };
+
+using StreamHeader = struct SteamHeader {
+	short _len;
+	short _streamId;
+	int	  _sequence;
+	char  _type;
+};
+
+using OrderMessage = struct OrderMessage {
+	double _timestamp;
+	double _orderId;
+	int	   _token;
+	char   _orderType;
+	int	   _price;
+	int	   _quantity;
+};
+
+struct Trade_Message {
+	double Timestamp;
+	double _buyOrderId;
+	double _sellOrderId;
+	int	   _token;
+	int	   _price;
+	int	   _quantity;
+};
+
+using StreamData = struct StreamData {
+	SteamHeader _header;
+	char		_type;
+	char		_data[40];
+	int			_counter;
+};
+
+using RecoveryRequest = struct RecoveryRequest {
+	char  _msgType;
+	short _streamId;
+	int	  _startSeqNo;
+	int	  _endSeqNo;
+};
+
+using RecoveryResponse = struct RecoveryResponse {
+	short _msgLen;
+	short _streamId;
+	int	  _seqNo;
+	char  _msgType;
+	char  _requestStatus;
+};
+
 #pragma pack(pop)
 
-enum Side  : bool{
-	Side_BUY = false,
+enum Side : bool {
+	Side_BUY  = false,
 	Side_SELL = true
 };
 
