@@ -6,12 +6,39 @@
 using Price		 = int;
 using Quantity	 = int;
 using Comaprator = std::less<>;
-using AllocatorT = boost::fast_pool_allocator<Price, boost::default_user_allocator_new_delete, boost::details::pool::default_mutex, 64, 128>;
+using AllocatorT = boost::fast_pool_allocator<std::pair<Price, Quantity>, boost::default_user_allocator_malloc_free, boost::details::pool::null_mutex, 8, 32>;
 
 template <typename Comparator>
 using ContainerT = boost::container::flat_map<Price, Quantity, Comparator, AllocatorT>;
 
-enum Side {
-	Side_BUY = 0,
-	Side_SELL
+using OrderID = uint64_t;
+using Order	  = struct Order {
+	  Price	   _price;
+	  Quantity _quantity;
+};
+using OrderPool		  = boost::fast_pool_allocator<Order>;
+using OrderContainerT = boost::container::flat_map<OrderID, Order, Comaprator, OrderPool>;
+
+#pragma pack(push, 1)
+using Ladder = struct Ladder {
+	Price	 _price	   = 0;
+	Quantity _quantity = 0;
+};
+using LadderDepth = struct LadderDepth {
+	int	   _token = 0;
+	Ladder _bid[5];
+	Ladder _ask[5];
+};
+#pragma pack(pop)
+
+enum Side  : bool{
+	Side_BUY = false,
+	Side_SELL = true
+};
+
+enum MessageType : char {
+	NEW		= 'N',
+	REPLACE = 'M',
+	CANCEL	= 'X',
+	TRADE	= 'T'
 };

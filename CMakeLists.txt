@@ -42,11 +42,12 @@ if (WIN32)
 
 endif ()
 
-add_executable(${PROJECT_NAME} include/Structure.hpp main.cpp
+add_executable(${PROJECT_NAME} main.cpp
+		include/Structure.hpp
 	include/LadderBuilder.hpp
 	src/LadderBuilder.cpp)
-target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 
+target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Boost::headers)
 
 target_precompile_headers(${PROJECT_NAME}

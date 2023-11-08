@@ -1,86 +1,41 @@
 //
-// Created by VIKLOD on 31-05-2023.
+// Created by kingofknights on 11/8/23.
 //
 
 #include "../include/LadderBuilder.hpp"
+void LadderBuilder::update(Side side_, Price price_, Quantity quantity_) {
+	if (price_ < 0 or price_ == std::numeric_limits<Price>::max()) return;
 
-void LadderBuilder::newOrder(Price price_, Quantity quantity_, Side side_) {
-	if (side_ == Side_BUY) {
-		auto iterator = _buyContainer.find(price_);
-		if (iterator != _buyContainer.end()) {
-			iterator.get_ptr() += quantity_;
-		} else {
-			_buyContainer.emplace(price_, quantity_);
+	switch (side_) {
+		case Side::Side_BUY: {
+			updateContainer(_buyContainer, price_, quantity_);
 		}
-	} else {
-		auto iterator = _sellContainer.find(price_);
-		if (iterator != _sellContainer.end()) {
-			iterator.get_ptr() += quantity_;
-		} else {
-			_sellContainer.emplace(price_, quantity_);
+		case Side::Side_SELL: {
+			updateContainer(_sellContainer, price_, quantity_);
+			break;
 		}
 	}
 }
-void LadderBuilder::modifyOrder(Price price_, Quantity previousQuantity_, Quantity quantity_, Side side_) {
-	if (side_ == Side_BUY) {
-		auto iterator = _buyContainer.find(price_);
-		if (iterator != _buyContainer.end()) {
-			iterator.get_ptr() -= previousQuantity_;
-			iterator.get_ptr() += quantity_;
-		} else {
-			newOrder(price_, quantity_, side_);
-		}
-	} else {
-		auto iterator = _sellContainer.find(price_);
-		if (iterator != _sellContainer.end()) {
-			iterator.get_ptr() -= previousQuantity_;
-			iterator.get_ptr() += quantity_;
-		} else {
-			newOrder(price_, quantity_, side_);
-		}
+template <class Container>
+Ladder LadderBuilder::getLadder(const Container& container_, typename Container::iterator& iterator_) {
+	if (iterator_ != container_.end()) {
+		Ladder ladder{iterator_.first, iterator_.second};
+		++iterator_;
+		return ladder;
 	}
+	return {0, 0};
 }
-void LadderBuilder::modifyOrder(Price previousPrice_, Price price_, Quantity previousQuantity_, Quantity quantity_, Side side_) {
-	if (side_ == Side_BUY) {
-		auto iterator = _buyContainer.find(previousPrice_);
-		if (iterator != _buyContainer.end()) {
-			iterator.get_ptr() -= previousQuantity_;
+
+template <class Container>
+void LadderBuilder::updateContainer(Container& container_, Price price_, Quantity quantity_) {
+	auto iterator = container_.find(price_);
+	if (iterator != container_.end()) [[likely]] {
+		if ((iterator->second + quantity_) > 0)
+			iterator->second += quantity_;
+		else {
+			container_.erase(iterator);
 		}
-	} else {
-		auto iterator = _sellContainer.find(previousPrice_);
-		if (iterator != _sellContainer.end()) {
-			iterator.get_ptr() -= previousQuantity_;
-		}
-	}
-	newOrder(price_, quantity_, side_);
-}
-void LadderBuilder::cancelOrder(Price price_, Quantity quantity_, Side side_) {
-	if (side_ == Side_BUY) {
-		auto iterator = _buyContainer.find(price_);
-		if (iterator != _buyContainer.end()) {
-			iterator.get_ptr() -= quantity_;
-			if (iterator.get_ptr() == 0) _buyContainer.erase(iterator);
-		}
-	} else {
-		auto iterator = _sellContainer.find(price_);
-		if (iterator != _sellContainer.end()) {
-			iterator.get_ptr() -= quantity_;
-			if (iterator.get_ptr() == 0) _sellContainer.erase(iterator);
-		}
-	}
-}
-void LadderBuilder::tradeOrder(Price price_, Quantity quantity_, Side side_) {
-	if (side_ == Side_BUY) {
-		auto iterator = _buyContainer.find(price_);
-		if (iterator != _buyContainer.end()) {
-			iterator.get_ptr() -= quantity_;
-			if (iterator.get_ptr() == 0) _buyContainer.erase(iterator);
-		}
-	} else {
-		auto iterator = _sellContainer.find(price_);
-		if (iterator != _sellContainer.end()) {
-			iterator.get_ptr() -= quantity_;
-			if (iterator.get_ptr() == 0) _sellContainer.erase(iterator);
-		}
+	} else if (quantity_ > 0) {
+		container_.insert(std::make_pair(price_, quantity_));
 	}
 }
