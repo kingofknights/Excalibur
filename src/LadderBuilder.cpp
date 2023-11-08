@@ -44,11 +44,17 @@ void LadderBuilder::update(Side side_, Price price_, Quantity quantity_) {
 	}
 }
 
+void LadderBuilder::setOrder(OrderID orderId_, Price price_, Quantity quantity_) { _orderContainer.insert_or_assign(orderId_, Order{price_, quantity_}); }
+
+Order LadderBuilder::getOrder(OrderID orderId_) const {
+	const auto iterator = _orderContainer.find(orderId_);
+	return iterator != _orderContainer.cend() ? Order{iterator->_price, iterator->_quantity} : Order{0, 0};
+}
+
 void LadderBuilder::clear() {
 	_buyContainer.clear();
 	_sellContainer.clear();
 }
-
 void LadderBuilder::generateLadders(int count_) {
 	auto buyIterator  = _buyContainer.begin();
 	auto sellIterator = _sellContainer.begin();
@@ -93,7 +99,6 @@ void LadderBuilder::generateLadders(int count_) {
 	_bestBuy  = _ladderDepth._bid[0]._price;
 	_bestSell = _ladderDepth._ask[0]._price;
 }
-
 Price LadderBuilder::getBestBuy() const { return _bestBuy; }
 Price LadderBuilder::getBestSell() const { return _bestSell; }
 int	  LadderBuilder::getToken() const { return _token; }
