@@ -80,11 +80,6 @@ using RecoveryResponse = struct RecoveryResponse {
 
 #pragma pack(pop)
 
-enum Side : bool {
-	Side_BUY  = false,
-	Side_SELL = true
-};
-
 enum MessageType : char {
 	NEW		= 'N',
 	REPLACE = 'M',

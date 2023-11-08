@@ -10,9 +10,10 @@ class LadderBuilder final {
 public:
 	explicit LadderBuilder(int token_);
 
-	void update(Side side_, Price price_, Quantity quantity_);
+	void update(bool side_, Price price_, Quantity quantity_);
 	void clear();
 	void setOrder(OrderID orderId_, Price price_, Quantity quantity_);
+	void clearOrder(OrderID orderId_);
 	void generateLadders(int count_ = 5);
 
 	[[nodiscard]] Order getOrder(OrderID orderId_) const;

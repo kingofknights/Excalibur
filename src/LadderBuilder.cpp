@@ -30,18 +30,13 @@ void updateContainer(Container& container_, Price price_, Quantity quantity_) {
 
 LadderBuilder::LadderBuilder(int token_) : _token(token_) { _ladderDepth._token = token_; }
 
-void LadderBuilder::update(Side side_, Price price_, Quantity quantity_) {
+void LadderBuilder::update(bool side_, Price price_, Quantity quantity_) {
 	if (price_ < 0 or price_ == std::numeric_limits<Price>::max()) return;
 
-	switch (side_) {
-		case Side::Side_BUY: {
-			updateContainer(_buyContainer, price_, quantity_);
-		}
-		case Side::Side_SELL: {
-			updateContainer(_sellContainer, price_, quantity_);
-			break;
-		}
-	}
+	if (side_)
+		updateContainer(_buyContainer, price_, quantity_);
+	else
+		updateContainer(_sellContainer, price_, quantity_);
 }
 
 void LadderBuilder::setOrder(OrderID orderId_, Price price_, Quantity quantity_) { _orderContainer.insert_or_assign(orderId_, Order{price_, quantity_}); }
@@ -50,6 +45,8 @@ Order LadderBuilder::getOrder(OrderID orderId_) const {
 	const auto iterator = _orderContainer.find(orderId_);
 	return iterator != _orderContainer.cend() ? Order{iterator->_price, iterator->_quantity} : Order{0, 0};
 }
+
+void LadderBuilder::clearOrder(OrderID orderId_) { _orderContainer.erase(orderId_); }
 
 void LadderBuilder::clear() {
 	_buyContainer.clear();
