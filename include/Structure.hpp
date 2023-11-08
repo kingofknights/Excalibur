@@ -11,7 +11,7 @@ using AllocatorT = boost::fast_pool_allocator<std::pair<Price, Quantity>, boost:
 template <typename Comparator>
 using ContainerT = boost::container::flat_map<Price, Quantity, Comparator, AllocatorT>;
 
-using OrderID = uint64_t;
+using OrderID = double;
 using Order	  = struct Order {
 	  Price	   _price;
 	  Quantity _quantity;
@@ -47,7 +47,7 @@ using OrderMessage = struct OrderMessage {
 	int	   _quantity;
 };
 
-struct Trade_Message {
+struct TradeMessage {
 	double Timestamp;
 	double _buyOrderId;
 	double _sellOrderId;

@@ -52,6 +52,7 @@ void LadderBuilder::clear() {
 	_buyContainer.clear();
 	_sellContainer.clear();
 }
+
 void LadderBuilder::generateLadders(int count_) {
 	auto buyIterator  = _buyContainer.begin();
 	auto sellIterator = _sellContainer.begin();
@@ -96,6 +97,7 @@ void LadderBuilder::generateLadders(int count_) {
 	_bestBuy  = _ladderDepth._bid[0]._price;
 	_bestSell = _ladderDepth._ask[0]._price;
 }
+
 Price LadderBuilder::getBestBuy() const { return _bestBuy; }
 Price LadderBuilder::getBestSell() const { return _bestSell; }
 int	  LadderBuilder::getToken() const { return _token; }
