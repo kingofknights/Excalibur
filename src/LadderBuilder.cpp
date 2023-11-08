@@ -28,6 +28,8 @@ void updateContainer(Container& container_, Price price_, Quantity quantity_) {
 	}
 }
 
+LadderBuilder::LadderBuilder(int token_) : _token(token_) { _ladderDepth._token = token_; }
+
 void LadderBuilder::update(Side side_, Price price_, Quantity quantity_) {
 	if (price_ < 0 or price_ == std::numeric_limits<Price>::max()) return;
 
@@ -41,6 +43,12 @@ void LadderBuilder::update(Side side_, Price price_, Quantity quantity_) {
 		}
 	}
 }
+
+void LadderBuilder::clear() {
+	_buyContainer.clear();
+	_sellContainer.clear();
+}
+
 void LadderBuilder::generateLadders(int count_) {
 	auto buyIterator  = _buyContainer.begin();
 	auto sellIterator = _sellContainer.begin();
@@ -81,4 +89,11 @@ void LadderBuilder::generateLadders(int count_) {
 			goto again;
 		}
 	}
+
+	_bestBuy  = _ladderDepth._bid[0]._price;
+	_bestSell = _ladderDepth._ask[0]._price;
 }
+
+Price LadderBuilder::getBestBuy() const { return _bestBuy; }
+Price LadderBuilder::getBestSell() const { return _bestSell; }
+int	  LadderBuilder::getToken() const { return _token; }
