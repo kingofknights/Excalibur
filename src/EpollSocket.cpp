@@ -69,10 +69,6 @@ int EpollSocket::prepareMulticastSocket(int streamId_, std::string_view lanIp_, 
 
 int EpollSocket::construct(int fd_, int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_) {
 	int sfd_replay_a = prepareMulticastSocket(streamId_, lanIp_, multicastIp_, port_);
-	if (sfd_replay_a == -1) {
-		perror("1 prepare_mc_socket");
-		exit(EXIT_FAILURE);
-	}
 
 	struct epoll_event eva {};
 	eva.events	= EPOLLIN;
@@ -89,19 +85,19 @@ int EpollSocket::construct(int fd_, int streamId_, std::string_view lanIp_, std:
 
 void EpollSocket::bindSocket(std::stop_token& stopToken_) {
 	while (not stopToken_.stop_requested()) {
-		int count = epoll_wait(_epollFd, events, MaxEvents, -1);
+		int count = epoll_wait(_epollFd, _events, MaxEvents, -1);
 		if (count == -1) continue;
 
 		for (int n = 0; n < count; ++n) {
-			if ((events[n].events & EPOLLERR) || (events[n].events & EPOLLHUP) || (!(events[n].events & EPOLLIN))) {
+			if ((_events[n].events & EPOLLERR) || (_events[n].events & EPOLLHUP) || (!(_events[n].events & EPOLLIN))) {
 				fprintf(stderr, "epoll error\n");
-				close(events[n].data.fd);
+				close(_events[n].data.fd);
 				continue;
 			}
-			if (events[n].events & EPOLLIN) {
-				ssize_t len = recv(events[n].data.fd, buffer, BufferSize, 0);
+			if (_events[n].events & EPOLLIN) {
+				ssize_t len = recv(_events[n].data.fd, _buffer, BufferSize, 0);
 				if (len < 0) {
-					close(events[n].data.fd);
+					close(_events[n].data.fd);
 				} else {
 				}
 			}

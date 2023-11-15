@@ -10,22 +10,22 @@ class LadderBuilder final {
 public:
 	explicit LadderBuilder(int token_);
 
-	void update(bool side_, Price price_, Quantity quantity_);
+	void update(bool side_, PriceT price_, QuantityT quantity_);
 	void clear();
-	void setOrder(OrderID orderId_, Price price_, Quantity quantity_);
-	void clearOrder(OrderID orderId_);
+	void setOrder(OrderIdT orderId_, PriceT price_, QuantityT quantity_);
+	void clearOrder(OrderIdT orderId_);
 	void generateLadders(int count_ = 5);
 
-	[[nodiscard]] Order getOrder(OrderID orderId_) const;
-	[[nodiscard]] Price getBestBuy() const;
-	[[nodiscard]] Price getBestSell() const;
-	[[nodiscard]] int	getToken() const;
+	[[nodiscard]] OrderT getOrder(OrderIdT orderId_) const;
+	[[nodiscard]] PriceT getBestBuy() const;
+	[[nodiscard]] PriceT getBestSell() const;
+	[[nodiscard]] int	 getToken() const;
 
 private:
-	Price		_bestBuy  = 0;
-	Price		_bestSell = 0;
-	int			_token	  = 0;
-	LadderDepth _ladderDepth;
+	PriceT		 _bestBuy  = 0;
+	PriceT		 _bestSell = 0;
+	int			 _token	   = 0;
+	LadderDepthT _ladderDepth;
 
 	ContainerT<std::greater<>> _buyContainer;
 	ContainerT<std::less<>>	   _sellContainer;

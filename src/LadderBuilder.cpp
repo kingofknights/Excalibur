@@ -5,9 +5,9 @@
 #include "../include/LadderBuilder.hpp"
 
 template <class Container>
-Ladder getLadder(const Container& container_, typename Container::const_iterator& iterator_) {
-	if (iterator_ != container_.end()) {
-		Ladder ladder{iterator_->first, iterator_->second};
+LadderT GetLadder(const Container& container_, typename Container::const_iterator& iterator_) {
+	if (iterator_ != container_.cend()) {
+		LadderT ladder{iterator_->first, iterator_->second};
 		++iterator_;
 		return ladder;
 	}
@@ -15,7 +15,7 @@ Ladder getLadder(const Container& container_, typename Container::const_iterator
 }
 
 template <class Container>
-void updateContainer(Container& container_, Price price_, Quantity quantity_) {
+void UpdateContainer(Container& container_, PriceT price_, QuantityT quantity_) {
 	auto iterator = container_.find(price_);
 	if (iterator != container_.end()) [[likely]] {
 		if ((iterator->second + quantity_) > 0)
@@ -30,23 +30,23 @@ void updateContainer(Container& container_, Price price_, Quantity quantity_) {
 
 LadderBuilder::LadderBuilder(int token_) : _token(token_) { _ladderDepth._token = token_; }
 
-void LadderBuilder::update(bool side_, Price price_, Quantity quantity_) {
-	if (price_ < 0 or price_ == std::numeric_limits<Price>::max()) return;
+void LadderBuilder::update(bool side_, PriceT price_, QuantityT quantity_) {
+	if (price_ < 0 or price_ == std::numeric_limits<PriceT>::max()) return;
 
 	if (side_)
-		updateContainer(_buyContainer, price_, quantity_);
+		UpdateContainer(_buyContainer, price_, quantity_);
 	else
-		updateContainer(_sellContainer, price_, quantity_);
+		UpdateContainer(_sellContainer, price_, quantity_);
 }
 
-void LadderBuilder::setOrder(OrderID orderId_, Price price_, Quantity quantity_) { _orderContainer.insert_or_assign(orderId_, Order{price_, quantity_}); }
+void LadderBuilder::setOrder(OrderIdT orderId_, PriceT price_, QuantityT quantity_) { _orderContainer.insert_or_assign(orderId_, OrderT{price_, quantity_}); }
 
-Order LadderBuilder::getOrder(OrderID orderId_) const {
+OrderT LadderBuilder::getOrder(OrderIdT orderId_) const {
 	const auto iterator = _orderContainer.find(orderId_);
-	return iterator != _orderContainer.cend() ? Order{iterator->_price, iterator->_quantity} : Order{0, 0};
+	return iterator != _orderContainer.cend() ? OrderT{iterator->_price, iterator->_quantity} : OrderT{0, 0};
 }
 
-void LadderBuilder::clearOrder(OrderID orderId_) { _orderContainer.erase(orderId_); }
+void LadderBuilder::clearOrder(OrderIdT orderId_) { _orderContainer.erase(orderId_); }
 
 void LadderBuilder::clear() {
 	_buyContainer.clear();
@@ -58,24 +58,24 @@ void LadderBuilder::generateLadders(int count_) {
 	auto sellIterator = _sellContainer.cbegin();
 
 	int	 index		= 0;
-	auto buyLadder	= getLadder(_buyContainer, buyIterator);
-	auto sellLadder = getLadder(_sellContainer, sellIterator);
+	auto buyLadder	= GetLadder(_buyContainer, buyIterator);
+	auto sellLadder = GetLadder(_sellContainer, sellIterator);
 
 	while (index < count_) {
 		if (buyLadder._price < sellLadder._price or sellLadder._price == 0) [[likely]] {
 			_ladderDepth._bid[index] = buyLadder;
 			_ladderDepth._ask[index] = sellLadder;
 
-			buyLadder  = getLadder(_buyContainer, buyIterator);
-			sellLadder = getLadder(_sellContainer, sellIterator);
+			buyLadder  = GetLadder(_buyContainer, buyIterator);
+			sellLadder = GetLadder(_sellContainer, sellIterator);
 
 			++index;
 			continue;
 		}
 	again:
 		if (buyLadder._quantity == sellLadder._quantity) {
-			buyLadder  = getLadder(_buyContainer, buyIterator);
-			sellLadder = getLadder(_sellContainer, sellIterator);
+			buyLadder  = GetLadder(_buyContainer, buyIterator);
+			sellLadder = GetLadder(_sellContainer, sellIterator);
 
 			++index;
 			continue;
@@ -83,13 +83,13 @@ void LadderBuilder::generateLadders(int count_) {
 
 		if (buyLadder._quantity > sellLadder._quantity) {
 			buyLadder._quantity -= sellLadder._quantity;
-			sellLadder			 = getLadder(_sellContainer, sellIterator);
+			sellLadder			 = GetLadder(_sellContainer, sellIterator);
 			goto again;
 		}
 
 		if (buyLadder._quantity < sellLadder._quantity) {
 			sellLadder._quantity -= buyLadder._quantity;
-			buyLadder			  = getLadder(_buyContainer, buyIterator);
+			buyLadder			  = GetLadder(_buyContainer, buyIterator);
 			goto again;
 		}
 	}
@@ -98,6 +98,6 @@ void LadderBuilder::generateLadders(int count_) {
 	_bestSell = _ladderDepth._ask[0]._price;
 }
 
-Price LadderBuilder::getBestBuy() const { return _bestBuy; }
-Price LadderBuilder::getBestSell() const { return _bestSell; }
+PriceT LadderBuilder::getBestBuy() const { return _bestBuy; }
+PriceT LadderBuilder::getBestSell() const { return _bestSell; }
 int	  LadderBuilder::getToken() const { return _token; }

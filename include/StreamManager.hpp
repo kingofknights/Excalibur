@@ -18,7 +18,7 @@ using FunctionPointerT = std::function<void(const char*)>;
 
 class StreamManager final {
 public:
-	StreamManager(int size, const TokenListT& tokenList_);
+	StreamManager(int size_, const TokenListT& tokenList_);
 	void process(const char* buffer_, int size_);
 
 protected:

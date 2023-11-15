@@ -1,5 +1,5 @@
-#ifndef EXCALIBAR_INCLUDE_EPOLL_SOCKET_HPP_
-#define EXCALIBAR_INCLUDE_EPOLL_SOCKET_HPP_
+#ifndef EXCALIBUR_INCLUDE_EPOLLSOCKET_HPP_
+#define EXCALIBUR_INCLUDE_EPOLLSOCKET_HPP_
 
 #pragma once
 #include <sys/epoll.h>
@@ -13,18 +13,18 @@ constexpr int BufferSize = 999999;
 class EpollSocket final {
 public:
 	/** Connect to Multicast. */
-	int construct(int fd_, int streamID_, std::string_view lanIp_, std::string_view multicastIp_, int port_);
+	int construct(int fd_, int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_);
 
 	void bindSocket(std::stop_token& stopToken_);
 
 protected:
 	/** Prepare Socket. */
-	int prepareMulticastSocket(int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_);
+	static int prepareMulticastSocket(int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_);
 
 private:
 	int			_epollFd{};
-	epoll_event events[MaxEvents]{};
-	char		buffer[BufferSize]{};
+	epoll_event _events[MaxEvents]{};
+	char		_buffer[BufferSize]{};
 };
 
-#endif	// EXCALIBAR_INCLUDE_EPOLL_SOCKET_HPP_
+#endif	// EXCALIBUR_INCLUDE_EPOLLSOCKET_HPP_
