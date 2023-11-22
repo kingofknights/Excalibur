@@ -7,6 +7,11 @@
 #include <cstring>
 #include <iostream>
 
+#include "../include/LadderBuilder.hpp"
+#include "../include/StreamManager.hpp"
+
+EpollSocket::EpollSocket() : _epollFd(epoll_create1(0)) {}
+
 int EpollSocket::prepareMulticastSocket(int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_) {
 	/*
 		Connect to socket.
@@ -67,23 +72,23 @@ int EpollSocket::prepareMulticastSocket(int streamId_, std::string_view lanIp_, 
 	return fd;
 }
 
-int EpollSocket::construct(int fd_, int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_) {
+StreamManagerPtrT EpollSocket::construct(int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_) {
 	int sfd_replay_a = prepareMulticastSocket(streamId_, lanIp_, multicastIp_, port_);
 
 	struct epoll_event eva {};
 	eva.events	= EPOLLIN;
 	eva.data.fd = sfd_replay_a;
 
-	if (epoll_ctl(fd_, EPOLL_CTL_ADD, sfd_replay_a, &eva) == -1) {
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, sfd_replay_a, &eva) == -1) {
 		perror("epoll_ctl");
 		exit(EXIT_FAILURE);
 	}
 	std::cout << " streamID " << streamId_ << " connected successfully" << std::endl;
-	return sfd_replay_a;
+	_container.at(streamId_) = std::make_shared<StreamManager>(30000);
+	return _container.at(streamId_);
 }
 
-
-void EpollSocket::bindSocket(std::stop_token& stopToken_) {
+void EpollSocket::bindSocket(std::stop_token &stopToken_) {
 	while (not stopToken_.stop_requested()) {
 		int count = epoll_wait(_epollFd, _events, MaxEvents, -1);
 		if (count == -1) continue;
@@ -99,6 +104,11 @@ void EpollSocket::bindSocket(std::stop_token& stopToken_) {
 				if (len < 0) {
 					close(_events[n].data.fd);
 				} else {
+					const auto	streamHeader = (StreamHeaderT *)(_buffer);
+					const auto &manager		 = _container.at(streamHeader->_streamId);
+					if (manager) {
+						manager->process(_buffer, len);
+					}
 				}
 			}
 		}

@@ -3,10 +3,12 @@
 //
 
 #include "../include/StreamManager.hpp"
-#include "../include/Structure.hpp"
+
+#include <execution>
+
 #include "../include/LadderBuilder.hpp"
 
-void TradeRemove(LadderBuilderPrtT& ladderBuilder_, OrderIdT orderId_, PriceT price_, QuantityT quantity_) {
+void TradeRemove(const LadderBuilderPrtT& ladderBuilder_, OrderIdT orderId_, PriceT price_, QuantityT quantity_) {
 	if (quantity_ > 0) {
 		ladderBuilder_->setOrder(orderId_, price_, quantity_);
 	} else {
@@ -14,10 +16,10 @@ void TradeRemove(LadderBuilderPrtT& ladderBuilder_, OrderIdT orderId_, PriceT pr
 	}
 }
 
-StreamManager::StreamManager(int size_, const TokenListT& tokenList_) : _manager(size_) {
-	for (int token_ : tokenList_) _manager.at(token_) = std::make_unique<LadderBuilder>(token_);
+constexpr auto EmptyFunction = []([[maybe_unused]] const char*) {};
 
-	for (char a = 'A'; a <= 'Z'; ++a) _function[a - 'A'] = [](const char*) {};
+StreamManager::StreamManager(int size_) : _manager(size_) {
+	for (char a = 'A'; a <= 'Z'; ++a) _function[a - 'A'] = EmptyFunction;
 
 	_function[MessageType::NEW - 'A']	  = [this](const char* buffer_) { newOrder(buffer_); };
 	_function[MessageType::REPLACE - 'A'] = [this](const char* buffer_) { modifyOrder(buffer_); };
@@ -25,21 +27,28 @@ StreamManager::StreamManager(int size_, const TokenListT& tokenList_) : _manager
 	_function[MessageType::TRADE - 'A']	  = [this](const char* buffer_) { tradeOrder(buffer_); };
 }
 
-void StreamManager::process(const char* buffer_, [[maybe_unused]] int size_) {
-	const auto* streamHeader = (StreamHeaderT*)(buffer_);
-	constexpr size_t	size		 = sizeof(StreamHeaderT);
+void StreamManager::process(const char* buffer_, [[maybe_unused]] size_t size_) {
+	const auto*		 streamHeader = (StreamHeaderT*)(buffer_);
+	constexpr size_t size		  = sizeof(StreamHeaderT);
 	if (_sequence + 1 == streamHeader->_sequence) [[likely]] {
 		_function[streamHeader->_type - 'A'](buffer_ + size);
 		_sequence = streamHeader->_sequence;
 		return;
 	}
 	if (_sequence < streamHeader->_sequence) {
+		if (_sequence == 0) {
+			_sequence = streamHeader->_sequence;
+			return;
+		}
+
+		_sequence = streamHeader->_sequence;
+		std::for_each(std::execution::par, _manager.cbegin(), _manager.cend(), [](const LadderBuilderPrtT& pointer_) { pointer_->clear(); });
 	}
 }
 
 void StreamManager::newOrder(const char* buffer_) {
 	const auto* orderMessage = (const OrderMessageT*)(buffer_);
-	auto&		ladder		 = _manager.at(orderMessage->_token);
+	const auto& ladder		 = _manager.at(orderMessage->_token);
 	if (not ladder) return;
 
 	ladder->update(orderMessage->_orderType == 'B', orderMessage->_price, orderMessage->_quantity);
@@ -49,7 +58,7 @@ void StreamManager::newOrder(const char* buffer_) {
 
 void StreamManager::modifyOrder(const char* buffer_) {
 	const auto* orderMessage = (const OrderMessageT*)(buffer_);
-	auto&		ladder		 = _manager.at(orderMessage->_token);
+	const auto& ladder		 = _manager.at(orderMessage->_token);
 	if (not ladder) return;
 
 	auto order = ladder->getOrder(orderMessage->_orderId);
@@ -62,7 +71,7 @@ void StreamManager::modifyOrder(const char* buffer_) {
 
 void StreamManager::cancelOrder(const char* buffer_) {
 	const auto* orderMessage = (const OrderMessageT*)(buffer_);
-	auto&		ladder		 = _manager.at(orderMessage->_token);
+	const auto& ladder		 = _manager.at(orderMessage->_token);
 	if (not ladder) return;
 
 	auto order = ladder->getOrder(orderMessage->_orderId);
@@ -73,7 +82,7 @@ void StreamManager::cancelOrder(const char* buffer_) {
 
 void StreamManager::tradeOrder(const char* buffer_) {
 	const auto* tradeMessage = (TradeMessage*)(buffer_);
-	auto&		ladder		 = _manager.at(tradeMessage->_token);
+	const auto& ladder		 = _manager.at(tradeMessage->_token);
 	if (not ladder) return;
 
 	auto buyOrder  = ladder->getOrder(tradeMessage->_buyOrderId);
@@ -85,4 +94,10 @@ void StreamManager::tradeOrder(const char* buffer_) {
 
 	TradeRemove(ladder, tradeMessage->_buyOrderId, buyOrder._price, buyOrder._quantity - tradeMessage->_quantity);
 	TradeRemove(ladder, tradeMessage->_sellOrderId, sellOrder._price, sellOrder._quantity - tradeMessage->_quantity);
+}
+
+void StreamManager::init(const TokenListT& tokenList_) {
+	for (int token : tokenList_) {
+		_manager.at(token) = std::make_unique<LadderBuilder>(token);
+	}
 }

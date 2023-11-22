@@ -3,9 +3,9 @@
 //
 
 #include "../include/LadderBuilder.hpp"
-
+#include <iostream>
 template <class Container>
-LadderT GetLadder(const Container& container_, typename Container::const_iterator& iterator_) {
+constexpr LadderT GetLadder(const Container& container_, typename Container::const_iterator& iterator_) {
 	if (iterator_ != container_.cend()) {
 		LadderT ladder{iterator_->first, iterator_->second};
 		++iterator_;
@@ -15,7 +15,7 @@ LadderT GetLadder(const Container& container_, typename Container::const_iterato
 }
 
 template <class Container>
-void UpdateContainer(Container& container_, PriceT price_, QuantityT quantity_) {
+constexpr void UpdateContainer(Container& container_, PriceT price_, QuantityT quantity_) {
 	auto iterator = container_.find(price_);
 	if (iterator != container_.end()) [[likely]] {
 		if ((iterator->second + quantity_) > 0)
@@ -72,7 +72,7 @@ void LadderBuilder::generateLadders(int count_) {
 			++index;
 			continue;
 		}
-	again:
+
 		if (buyLadder._quantity == sellLadder._quantity) {
 			buyLadder  = GetLadder(_buyContainer, buyIterator);
 			sellLadder = GetLadder(_sellContainer, sellIterator);
@@ -84,13 +84,13 @@ void LadderBuilder::generateLadders(int count_) {
 		if (buyLadder._quantity > sellLadder._quantity) {
 			buyLadder._quantity -= sellLadder._quantity;
 			sellLadder			 = GetLadder(_sellContainer, sellIterator);
-			goto again;
+			continue;
 		}
 
 		if (buyLadder._quantity < sellLadder._quantity) {
 			sellLadder._quantity -= buyLadder._quantity;
 			buyLadder			  = GetLadder(_buyContainer, buyIterator);
-			goto again;
+			continue;
 		}
 	}
 
@@ -101,3 +101,8 @@ void LadderBuilder::generateLadders(int count_) {
 PriceT LadderBuilder::getBestBuy() const { return _bestBuy; }
 PriceT LadderBuilder::getBestSell() const { return _bestSell; }
 int	  LadderBuilder::getToken() const { return _token; }
+void   LadderBuilder::print() const {
+	for(int i = 0; i < 5;++i){
+		std::cout << i << " " << _ladderDepth._bid[i]._price << " " << _ladderDepth._bid[i]._quantity << " " << _ladderDepth._ask[i]._price << " " << _ladderDepth._ask[i]._quantity<< '\n';
+	}
+}

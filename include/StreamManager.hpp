@@ -11,15 +11,16 @@
 
 class LadderBuilder;
 using LadderBuilderPrtT = std::unique_ptr<LadderBuilder>;
-using StreamManagerPtrT = std::vector<LadderBuilderPrtT>;
+using LadderContainerT	= std::vector<LadderBuilderPrtT>;
 using TokenListT		= std::vector<int>;
 
 using FunctionPointerT = std::function<void(const char*)>;
 
 class StreamManager final {
 public:
-	StreamManager(int size_, const TokenListT& tokenList_);
-	void process(const char* buffer_, int size_);
+	explicit StreamManager(int size_);
+	void process(const char* buffer_, size_t size_);
+	void init(const TokenListT& tokenList_);
 
 protected:
 	void newOrder(const char* buffer_);
@@ -28,9 +29,9 @@ protected:
 	void tradeOrder(const char* buffer_);
 
 private:
-	StreamManagerPtrT _manager;
-	int				  _sequence = 1;
-	FunctionPointerT  _function[26];
+	int				 _sequence = 0;
+	LadderContainerT _manager;
+	FunctionPointerT _function[26];
 };
 
 #endif	// EXCALIBUR_INCLUDE_STREAMMANAGER_HPP_

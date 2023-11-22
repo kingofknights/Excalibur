@@ -20,6 +20,7 @@ set(Boost_USE_STATIC_LIBS ON)
 
 find_package(Threads)
 find_package(fmt REQUIRED)
+find_package(nlohmann_json  REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 
 if (WIN32)
@@ -29,7 +30,6 @@ if (WIN32)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
     add_compile_options(/bigobj)
     include_directories($ENV{MSVC_INCLUDE_PATH})
-
 endif ()
 
 add_executable(${PROJECT_NAME} main.cpp
@@ -42,10 +42,17 @@ add_executable(${PROJECT_NAME} main.cpp
         include/StreamManager.hpp
         src/Recovery.cpp
         include/Recovery.hpp
+        src/Excalibur.cpp
+        include/Excalibur.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::headers)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::headers nlohmann_json::nlohmann_json)
+
+add_custom_command(TARGET ${PROJECT_NAME}
+        POST_BUILD
+        COMMAND
+        ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Excalibur.json ${CMAKE_CURRENT_BINARY_DIR})
 
 target_precompile_headers(${PROJECT_NAME}
         INTERFACE

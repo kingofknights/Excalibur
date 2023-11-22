@@ -15,6 +15,7 @@ public:
 	void setOrder(OrderIdT orderId_, PriceT price_, QuantityT quantity_);
 	void clearOrder(OrderIdT orderId_);
 	void generateLadders(int count_ = 5);
+	void print() const;
 
 	[[nodiscard]] OrderT getOrder(OrderIdT orderId_) const;
 	[[nodiscard]] PriceT getBestBuy() const;
