@@ -8,8 +8,6 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
-#include "../include/EpollSocket.hpp"
-#include "../include/Recovery.hpp"
 #include "../include/StreamManager.hpp"
 
 Excalibur::Excalibur() { readConfig(); }
@@ -34,11 +32,12 @@ void Excalibur::readConfig() {
 	std::cout << "streams " << streams << std::endl;
 
 	using StreamInfoT = std::array<nlohmann::json::value_type, MaxStream>;
-	int			index = 0;
+
 	StreamInfoT streamInfo;
 	for (const auto& info : streams) {
+		int index = info.at("id").get<int>();
 		streamInfo.at(index)  = info;
-		index				 += 1;
+		std::cout << "Info : " << index << " " << info << std::endl;
 	}
 
 	for (const auto& thread : connect.items()) {
@@ -49,10 +48,16 @@ void Excalibur::readConfig() {
 			const auto	lan		= info.at("lan").get<std::string>();
 			const auto	address = info.at("address").get<std::string>();
 			const auto	port	= info.at("port").get<short>();
+			const auto	id		= info.at("id").get<int>();
 
-			const auto id	  = info.at("id").get<int>();
-			_container.at(id) = std::make_unique<EpollSocket>();
-			const auto streamManager = _container.at(id)->construct(id, lan, address, port);
+			_container.at(id)		= std::make_unique<EpollSocket>();
+			_streamContainer.at(id) = _container.at(id)->construct(id, lan, address, port);
+			std::cout << id << " " << lan << " " << address << " " << port << std::endl;
 		}
+	}
+}
+void Excalibur::runRecoveryThread(std::stop_token stopToken_) {
+	while (not stopToken_.stop_requested()){
+
 	}
 }
