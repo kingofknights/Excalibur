@@ -46,7 +46,7 @@ int EpollSocket::prepareMulticastSocket(int streamId_, std::string_view lanIp_, 
 	localSock.sin_port		  = htons(port_);
 
 	if (::bind(fd, (struct sockaddr *)&localSock, sizeof(struct sockaddr))) {
-		printf("Binding MC datagram socket num = %d error", streamId_);
+		printf("Binding MC datagram socket num = %d error, Address : %s port : %d", streamId_, multicastIp_.data(), port_);
 		close(fd);
 		exit(EXIT_FAILURE);
 	}
@@ -88,7 +88,7 @@ StreamManagerPtrT EpollSocket::construct(int streamId_, std::string_view lanIp_,
 	return _container.at(streamId_);
 }
 
-void EpollSocket::bindSocket(std::stop_token &stopToken_) {
+void EpollSocket::bindSocket(std::stop_token stopToken_) {
 	while (not stopToken_.stop_requested()) {
 		int count = epoll_wait(_epollFd, _events, MaxEvents, -1);
 		if (count == -1) continue;

@@ -37,6 +37,7 @@ build
 .idea
 .vs
 .vcode
-
+.cache
 #User files
 *.user
+compile_commands.json

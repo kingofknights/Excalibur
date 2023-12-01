@@ -16,10 +16,10 @@ void TradeRemove(const LadderBuilderPrtT& ladderBuilder_, OrderIdT orderId_, Pri
 	}
 }
 
-constexpr auto EmptyFunction = []([[maybe_unused]] const char*) {};
+constexpr auto EmptyFunctionT = []([[maybe_unused]] const char*) {};
 
 StreamManager::StreamManager(int size_) : _manager(size_) {
-	for (char a = 'A'; a <= 'Z'; ++a) _function[a - 'A'] = EmptyFunction;
+	for (char a = 'A'; a <= 'Z'; ++a) _function[a - 'A'] = EmptyFunctionT;
 
 	_function[MessageType::NEW - 'A']	  = [this](const char* buffer_) { newOrder(buffer_); };
 	_function[MessageType::REPLACE - 'A'] = [this](const char* buffer_) { modifyOrder(buffer_); };

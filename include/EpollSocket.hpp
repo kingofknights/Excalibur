@@ -22,7 +22,7 @@ public:
 	/** Connect to Multicast. */
 	[[nodiscard]] StreamManagerPtrT construct(int streamId_, std::string_view lanIp_, std::string_view multicastIp_, int port_) ;
 
-	void bindSocket(std::stop_token& stopToken_);
+	void bindSocket(std::stop_token stopToken_);
 
 protected:
 	/** Prepare Socket. */

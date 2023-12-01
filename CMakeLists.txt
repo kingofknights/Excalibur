@@ -4,8 +4,7 @@ project(Excalibur
         VERSION 1.0
         LANGUAGES C CXX
 )
-
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_CPPCHECK "")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -53,6 +52,11 @@ add_custom_command(TARGET ${PROJECT_NAME}
         POST_BUILD
         COMMAND
         ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/Excalibur.json ${CMAKE_CURRENT_BINARY_DIR})
+
+add_custom_command(TARGET ${PROJECT_NAME} 
+        POST_BUILD
+        COMMAND
+        ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_precompile_headers(${PROJECT_NAME}
         INTERFACE

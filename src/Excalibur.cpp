@@ -35,14 +35,15 @@ void Excalibur::readConfig() {
 
 	StreamInfoT streamInfo;
 	for (const auto& info : streams) {
-		int index = info.at("id").get<int>();
-		streamInfo.at(index)  = info;
+		int index			 = info.at("id").get<int>();
+		streamInfo.at(index) = info;
 		std::cout << "Info : " << index << " " << info << std::endl;
 	}
 
 	for (const auto& thread : connect.items()) {
 		std::cout << "binding these stream into one epoll : " << thread.value() << std::endl;
 
+		auto epoll = std::make_shared<EpollSocket>();
 		for (const auto& item : thread.value().items()) {
 			const auto& info	= streamInfo.at(item.value());
 			const auto	lan		= info.at("lan").get<std::string>();
@@ -50,14 +51,27 @@ void Excalibur::readConfig() {
 			const auto	port	= info.at("port").get<short>();
 			const auto	id		= info.at("id").get<int>();
 
-			_container.at(id)		= std::make_unique<EpollSocket>();
-			_streamContainer.at(id) = _container.at(id)->construct(id, lan, address, port);
+			_streamContainer.at(id) = epoll->construct(id, lan, address, port);
 			std::cout << id << " " << lan << " " << address << " " << port << std::endl;
 		}
+		_container.push_back(std::move(epoll));
 	}
 }
 void Excalibur::runRecoveryThread(std::stop_token stopToken_) {
-	while (not stopToken_.stop_requested()){
+	while (not stopToken_.stop_requested()) {
+	}
+}
+void Excalibur::run() {
+	auto runThread = [](const EpollSocketPrtT& ptr_) {
+		std::jthread thread([&](std::stop_token token_) { ptr_->bindSocket(token_); });
+		return thread;
+	};
 
+	for (const auto& item : _container) {
+		_threadGroup.push_back(runThread(item));
+	}
+
+	for (std::jthread& thread_ : _threadGroup) {
+		if (thread_.joinable()) thread_.join();
 	}
 }
